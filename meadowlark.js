@@ -1,4 +1,5 @@
-var express = require('express');
+var express = require('express');//引入express
+var fortune = require('./lib/fortune.js');
 var app = express();
 //设置handlebars试图引擎
 var handlebars = require('express3-handlebars').create({defaultLayout:'main'});
@@ -13,8 +14,7 @@ app.get('/',function(req,res){
 });
 //about页路由
 app.get('/about',function(req,res){
-    var randomFortune = fortunes[Math.floor(Math.random()*fortunes.length)];
-    res.render('about',{fortune:randomFortune});
+    res.render('about',{fortune:fortune.getFortune()});
 });
 
 //404 catch-all处理器 （中间件）
@@ -32,9 +32,3 @@ app.listen(app.get('port'),function(){
     console.log("Express于 http://localhost:" + app.get('port') + "开启成功，按Ctrl+C关闭！");
 });
 
-var fortunes = [
-    '白日依山尽',
-    '黄河入海流',
-    '欲穷千里目',
-    '更上一层楼'
-];
