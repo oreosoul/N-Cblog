@@ -7,16 +7,35 @@ app.engine('handlebars',handlebars.engine);
 app.set('view engine','handlebars');
 
 app.set('port',process.env.PORT||3000);//设置端口号
+
+//查询路由字符串中的test=1
+app.use(function(req,res,next){
+    res.locals.showTests = app.get('env') !== 'production'&& req.query.test==='1';
+    next();
+});
+
 app.use(express.static(__dirname + '/public'));//static中间件
+
 //首页路由
 app.get('/',function(req,res){
     res.render('home');
 });
 //about页路由
 app.get('/about',function(req,res){
-    res.render('about',{fortune:fortune.getFortune()});
+    res.render('about',{
+        fortune:fortune.getFortune(),
+        pageTestScript:'qa/tests-about.js'
+    });
 });
-
+app.get('/tour/oregon-coast',function(req,res){
+    res.render('tour/oregon-coast');
+});
+app.get('/tour/hood-river',function(req,res){
+    res.render('tour/hood-river');
+});
+app.get('/tour/request-group-rate',function(req,res){
+    res.render('tour/request-group-rate');
+});
 //404 catch-all处理器 （中间件）
 app.use(function(req,res,next){
     res.status(404);
