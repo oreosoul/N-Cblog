@@ -5,9 +5,9 @@ var bodyparse = require("body-parser");
 //设置handlebars视图引擎
 var handlebars = require('express3-handlebars').create({
     defaultLayout:'main',
-    helper :{
-        section:function(name,section){
-            if(!this._sections)this._sections = {};
+    helpers :{
+        section: function(name, options){
+            if(!this._sections) this._sections = {};
             this._sections[name] = options.fn(this);
             return null;
         }
@@ -87,6 +87,20 @@ app.get('/tour/request-group-rate',function(req,res){
     res.render('tour/request-group-rate');
 });
 
+app.get('/jquerytest', function(req, res){
+	res.render('jquerytest');
+});
+app.get('/nursery-rhyme', function(req, res){
+	res.render('nursery-rhyme');
+});
+app.get('/data/nursery-rhyme', function(req, res){
+	res.json({
+		animal: 'squirrel',
+		bodyPart: 'tail',
+		adjective: 'bushy',
+		noun: 'heck',
+	});
+});
 
 //404 catch-all处理器 （中间件）
 app.use(function(req,res,next){
