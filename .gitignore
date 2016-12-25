@@ -3,5 +3,6 @@ node_modules
 *~
 .ssh
 .vscode
+credentials.js
 #put ant other files you don`t want to check ni here,
 #such as .DS_Store(OSX), *.bak, etc.

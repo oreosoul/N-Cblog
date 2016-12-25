@@ -1,8 +1,10 @@
 var express = require('express');//引入express
 var fortune = require('./lib/fortune.js');
 var app = express();
+var credentials = require('./credentials.js');
 var bodyParser = require('body-parser');
 var formidable = require('formidable');
+var emailService = require('./lib/email.js')(credentials);
 
 //设置handlebars视图引擎
 var handlebars = require('express3-handlebars').create({
@@ -32,7 +34,6 @@ app.use(function(req,res,next){
     res.locals.showTests = app.get('env') !== 'production'&& req.query.test==='1';
     next();
 });
-
 
 app.use(express.static(__dirname + '/public'));//static中间件
 /*********************************************************************************
@@ -145,6 +146,57 @@ app.get('/data/nursery-rhyme', function(req, res){
 		adjective: 'bushy',
 		noun: 'heck',
 	});
+});
+app.post('/newsletter', function(req, res){
+	var name = req.body.name || '', email = req.body.email || '';
+	// input validation
+	if(!email.match(VALID_EMAIL_REGEX)) {
+		if(req.xhr) return res.json({ error: 'Invalid name email address.' });
+		req.session.flash = {
+			type: 'danger',
+			intro: 'Validation error!',
+			message: 'The email address you entered was  not valid.',
+		};
+		return res.redirect(303, '/newsletter/archive');
+	}
+	new NewsletterSignup({ name: name, email: email }).save(function(err){
+		if(err) {
+			if(req.xhr) return res.json({ error: 'Database error.' });
+			req.session.flash = {
+				type: 'danger',
+				intro: 'Database error!',
+				message: 'There was a database error; please try again later.',
+			};
+			return res.redirect(303, '/newsletter/archive');
+		}
+		if(req.xhr) return res.json({ success: true });
+		req.session.flash = {
+			type: 'success',
+			intro: 'Thank you!',
+			message: 'You have now been signed up for the newsletter.',
+		};
+		return res.redirect(303, '/newsletter/archive');
+	});
+});
+app.post('/cart-checkout', function(req, res){
+	var cart = req.session.cart;
+	if(!cart) next(new Error('Cart does not exist.'));
+	var name = req.body.name || '', email = req.body.email || '';
+	if(!email.match(VALID_EMAIL_REGEX)) return res.next(new Error('Invalid email address.'));
+	cart.number = Math.random().toString().replace(/^0\.0*/, '');
+	cart.billing = {
+		name: name,
+		email: email,
+	};
+    res.render('email/cart-thank-you', 
+    	{ layout: null, cart: cart }, function(err,html){
+	        if( err ) console.log('error in email template');
+	        emailService.send(cart.billing.email,
+	        	'Thank you for booking your trip with Meadowlark Travel!',
+	        	html);
+	    }
+    );
+    res.render('cart-thank-you', { cart: cart });
 });
 
 //404 catch-all处理器 （中间件）
